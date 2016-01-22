@@ -1,17 +1,24 @@
 body {
-    padding: 3em;
-    font-family: 'Open Sans', sans-serif;
-    font-size: 1em;
+	padding: 3em;
+	font-family: 'Open Sans', sans-serif;
+	font-size: 1em;
 }
 
 textarea {
-    resize: none;
+	resize: none;
 }
 
 .inlineBlock {
-    display: inline-block;
+	display: inline-block;
 }
 
 .topAligned {
-    vertical-align: top;
+	vertical-align: top;
+}
+
+.name {
+	font-weight: bold;
+}
+.time {
+	padding: 10px;
 }
