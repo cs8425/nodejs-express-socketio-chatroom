@@ -48,7 +48,7 @@ io.on("connection", function(socket) {
 		io.sockets.emit("newConnection", {
 			participants: participants
 		});
-		console.log(now(), '[new]', '[' + data.name + ']');
+		console.log(now(), '[new]', '[' + socket.id + ']', '[' + data.name + ']');
 	});
 
 	/*
@@ -63,7 +63,7 @@ io.on("connection", function(socket) {
 		var sender = _.findWhere(participants, {
 			id: socket.id
 		});
-		console.log(now(), '[change]', '[' + sender.name + ']' + '->[' + data.name + ']');
+		console.log(now(), '[change]', '[' + socket.id + ']', '[' + sender.name + ']' + '->[' + data.name + ']');
 		sender.name = data.name;
 		// _.findWhere(participants, {
 		// 	id: socket.id
@@ -83,12 +83,13 @@ io.on("connection", function(socket) {
 		var sender = _.findWhere(participants, {
 			id: socket.id
 		});
+		if(!sender) return;
 		participants = _.without(participants, sender);
 		io.sockets.emit("userDisconnected", {
 			id: socket.id,
 			sender: "system"
 		});
-		console.log(now(), '[leave]','[' + sender.name + ']');
+		console.log(now(), '[leave]', '[' + socket.id + ']', '[' + sender.name + ']');
 	});
 
 	socket.on("msg", function(data) {
@@ -98,6 +99,7 @@ io.on("connection", function(socket) {
 		var sender = _.findWhere(participants, {
 			id: socket.id
 		});
+		if(!sender) return;
 		io.sockets.emit("msg", {
 			message: data,
 			name: sender.name
@@ -138,7 +140,7 @@ var cleanup = function(arr, max_count, history_time) {
 		len = max_count;
 	}
 	var n = (new Date())*1.0;
-	var idx = null;
+	var idx = 0;
 	for(i=0; i<len; i++){
 		if(arr[i][0] + history_time < n){
 			idx = i;
