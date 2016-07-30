@@ -24,7 +24,7 @@ module.exports = function(config) {
 			}
 			var thisEtag = '"' + stat.size + '-' + stat.mtime.getTime() + '"';
 			if (ifNoneMatch && ifNoneMatch == thisEtag) {
-				return callback(null, true, thisEtag);
+				return callback(null, null, true, thisEtag);
 			}
 			fs.readFile(file, function(err, data) {
 				callback(err, err ? null : data, false, thisEtag);
@@ -39,31 +39,34 @@ module.exports = function(config) {
 		var send_file = function(err, body, notModified, etag) {
 			var status;
 
-			if (err) {
-				//console.error(err);
-				status = notModified ? 304 : 404;
-			} else {
-				status = notModified ? 304 : 200;
-			}
-
 			var ct = '';
 
 			if (req.url.indexOf('.css') !== -1) {
 				ct = 'text/css';
 			} else if (req.url.indexOf('.js') !== -1) {
 				ct = 'text/javascript';
-			} else if (req.url.indexOf('.html') !== -1) {
+			} else if ((req.url.indexOf('.html') !== -1)||(req.url == "/")) {
 				ct = 'text/html';
 			} else if (req.url.indexOf('.png') !== -1) {
 				ct = 'image/png';
 			}
 
-			res.writeHead(status, {
+			var headers = {
 				'content-type': ct,
 				'cache-control': 'must-revalidate,private,max-age=1209600',
 				'Expires': new Date(Date.now() + 1209600000).toUTCString(),
 				'etag': etag
-			});
+			};
+
+			if (err) {
+				//console.error(err);
+				status = notModified ? 304 : 404;
+			} else {
+				status = notModified ? 304 : 200;
+				if(!notModified) headers['Content-Length'] = body.length;
+			}
+
+			res.writeHead(status, headers);
 
 			if (notModified) {
 				res.end();
