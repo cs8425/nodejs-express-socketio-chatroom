@@ -24,7 +24,7 @@ var config = {
 //	history_time: 30*1000,
 };
 var server = require('./file-server.js')(config);
-var io = require("socket.io").listen(server);
+var io = require("socket.io")(server);
 
 var participants = [];
 
@@ -93,7 +93,7 @@ io.on("connection", function(socket) {
 	});
 
 	socket.on("msg", function(data) {
-		if (_.isUndefined(data) || _.isEmpty(data.m.trim())) {
+		if (_.isUndefined(data) || _.isUndefined(data.m) || _.isEmpty(data.m.trim())) {
 			return;
 		}
 		var sender = _.findWhere(participants, {
@@ -107,7 +107,7 @@ io.on("connection", function(socket) {
 		});
 		history.push([ (new Date())*1.0, sender.name, data.m]);
 		history = cleanup(history, config.history_count, config.history_time);
-		console.log(now(), '[say]','[' + sender.name + ']', data);
+		console.log(now(), '[say]','[' + sender.name + ']', data.m, data.k);
 	});
 
 });

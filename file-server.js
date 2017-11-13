@@ -24,11 +24,11 @@ module.exports = function(config) {
 			}
 			var thisEtag = '"' + stat.size + '-' + stat.mtime.getTime() + '"';
 			if (ifNoneMatch && ifNoneMatch == thisEtag) {
-				return callback(null, null, true, thisEtag);
+				return callback(null, null, stat.size, true, thisEtag);
 			}
-			fs.readFile(file, function(err, data) {
-				callback(err, err ? null : data, false, thisEtag);
-			});
+			fs.open(file, 'r', function(err, fd) {
+				callback(err, err ? null : fd, stat.size, false, thisEtag);
+			})
 		});
 	};
 
@@ -36,7 +36,7 @@ module.exports = function(config) {
 
 	function handleRequest(req, res) {
 		//console.log(req.url);
-		var send_file = function(err, body, notModified, etag) {
+		var send_file = function(err, fd, size, notModified, etag) {
 			var status;
 
 			var ct = '';
@@ -63,7 +63,7 @@ module.exports = function(config) {
 				status = notModified ? 304 : 404;
 			} else {
 				status = notModified ? 304 : 200;
-				if(!notModified) headers['Content-Length'] = body.length;
+				if(!notModified) headers['Content-Length'] = size;
 			}
 
 			res.writeHead(status, headers);
@@ -71,7 +71,8 @@ module.exports = function(config) {
 			if (notModified) {
 				res.end();
 			} else {
-				res.end(body);
+				var file = fs.createReadStream('', {fd: fd});
+				file.pipe(res)
 			}
 		}
 

@@ -1,6 +1,6 @@
 function init() {
 
-	var serverBaseUrl = document.domain;
+	var serverBaseUrl = document.location.origin;
 
 	var key = null;
 	var Counter = Math.floor(Math.random() * 10000) + 1;
@@ -48,7 +48,7 @@ function init() {
 	}
 
 	function build_msg(data) {
-		if(data.k){
+		if(data.k && key != null){
 			var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(data.k))
 			var decryptedBytes = aesCtr.decrypt(aesjs.utils.hex.toBytes(data.m))
 			var text = aesjs.utils.utf8.fromBytes(decryptedBytes)
@@ -167,6 +167,10 @@ function init() {
 
 	function keyKeyUp() {
 		var rawkey = $('#key').val()
+		if(rawkey == ''){
+			key = null
+			return
+		}
 		key = sha256.array(rawkey)
 	}
 
