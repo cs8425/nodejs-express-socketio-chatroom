@@ -2,6 +2,9 @@ function init() {
 
 	var serverBaseUrl = document.domain;
 
+	var key = null;
+	var Counter = Math.floor(Math.random() * 10000) + 1;
+
 	/*
 	 On client init, try to connect to the socket.IO server.
 	 Note we don't specify a port since we set up our server
@@ -45,8 +48,17 @@ function init() {
 	}
 
 	function build_msg(data) {
-		var message = '<span class="msg">' + htmlesc(data.message) + '</span>';
-		var name = '<span class="name">' + htmlesc(data.name) + '</span>';
+		if(data.k){
+			var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(data.k))
+			var decryptedBytes = aesCtr.decrypt(aesjs.utils.hex.toBytes(data.m))
+			var text = aesjs.utils.utf8.fromBytes(decryptedBytes)
+			//console.log('[dec]', data.m, text)
+			if(text[0] === '#'){
+				data.m = text.substr(1)
+			}
+		}
+		var message = '<span class="msg">' + htmlesc(data.m) + '</span>';
+		var name = '<span class="name">' + htmlesc(data.n) + '</span>';
 		var time = '<span class="time">' + now(data.t) + '</span>';
 		return '<div>' + '<b>' + name + '</b>' + time + '<br />' + message + '<hr /></div>';
 	}
@@ -105,8 +117,8 @@ function init() {
 		while(i--){
 			var msg = data[i];
 			obj.t = msg[0];
-			obj.name = msg[1];
-			obj.message = msg[2];
+			obj.n = msg[1];
+			obj.m = msg[2];
 			html += build_msg(obj);
 		}
 		$('#messages').prepend(html);
@@ -120,8 +132,21 @@ function init() {
 	});
 
 	function sendMessage() {
-		var outgoingMessage = $('#outgoingMessage').val();
-		socket.emit('msg', outgoingMessage);
+		var msg = {
+			m: $('#outgoingMessage').val(),
+			k: 0,
+		}
+		if(key != null){
+			var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(Counter))
+			var hash = sha256.hex(msg.m)
+			var encryptedBytes = aesCtr.encrypt(aesjs.utils.utf8.toBytes('#' + msg.m))
+			var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes)
+			msg.k = Counter
+			msg.m = encryptedHex
+			//console.log('[enc]', encryptedHex, Counter)
+			Counter++
+		}
+		socket.emit('msg', msg);
 	}
 
 	function outgoingMessageKeyDown(event) {
@@ -138,6 +163,11 @@ function init() {
 	function outgoingMessageKeyUp() {
 		var outgoingMessageValue = $('#outgoingMessage').val();
 		$('#send').attr('disabled', (outgoingMessageValue.trim()).length > 0 ? false : true);
+	}
+
+	function keyKeyUp() {
+		var rawkey = $('#key').val()
+		key = sha256.array(rawkey)
 	}
 
 	/*
@@ -161,7 +191,7 @@ function init() {
 	$('#outgoingMessage').on('keyup', outgoingMessageKeyUp);
 	$('#name').on('focusout', nameFocusOut);
 	$('#send').on('click', sendMessage);
-
+	$('#key').on('keyup', keyKeyUp);
 }
 
 $(document).on('ready', init);

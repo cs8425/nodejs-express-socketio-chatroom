@@ -93,7 +93,7 @@ io.on("connection", function(socket) {
 	});
 
 	socket.on("msg", function(data) {
-		if (_.isUndefined(data) || _.isEmpty(data.trim())) {
+		if (_.isUndefined(data) || _.isEmpty(data.m.trim())) {
 			return;
 		}
 		var sender = _.findWhere(participants, {
@@ -101,10 +101,11 @@ io.on("connection", function(socket) {
 		});
 		if(!sender) return;
 		io.sockets.emit("msg", {
-			message: data,
-			name: sender.name
+			m: data.m,
+			k: data.k,
+			n: sender.name
 		});
-		history.push([ (new Date())*1.0, sender.name, data]);
+		history.push([ (new Date())*1.0, sender.name, data.m]);
 		history = cleanup(history, config.history_count, config.history_time);
 		console.log(now(), '[say]','[' + sender.name + ']', data);
 	});

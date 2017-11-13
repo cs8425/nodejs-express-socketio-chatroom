@@ -6,6 +6,8 @@
 	<link rel="stylesheet" href="/css/style.css">
 	<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
+	<script src="/js/sha256.min.js"></script>
+	<script src="/js/aes-js.js"></script>
 	<script src="/js/index.js"></script>
 	<title>Super Simple Chatroom</title>
 </head>
@@ -16,6 +18,10 @@
 		<div class="inlineBlock">
 			<span>Your name:
 				<input type="text" value="Anonymous" id="name">
+			</span>
+			<br>
+			<span>Key:
+				<input type="password" value="" id="key">
 			</span>
 			<br>
 			<form id="messageForm">
