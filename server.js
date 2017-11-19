@@ -93,7 +93,13 @@ io.on("connection", function(socket) {
 	});
 
 	socket.on("msg", function(data) {
-		if (_.isUndefined(data) || _.isUndefined(data.m) || _.isEmpty(data.m.trim())) {
+		if ( _.isUndefined(data) ) {
+			return;
+		}
+		if ( _.isUndefined(data.m) ) {
+			return;
+		}
+		if ( _.isEmpty(data.m.trim()) ) {
 			return;
 		}
 		var sender = _.findWhere(participants, {

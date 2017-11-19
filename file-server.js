@@ -26,9 +26,9 @@ module.exports = function(config) {
 			if (ifNoneMatch && ifNoneMatch == thisEtag) {
 				return callback(null, null, stat.size, true, thisEtag);
 			}
-			fs.open(file, 'r', function(err, fd) {
-				callback(err, err ? null : fd, stat.size, false, thisEtag);
-			})
+
+			var fd = fs.createReadStream(file)
+			callback(err, err ? null : fd, stat.size, false, thisEtag);
 		});
 	};
 
@@ -71,8 +71,7 @@ module.exports = function(config) {
 			if (notModified) {
 				res.end();
 			} else {
-				var file = fs.createReadStream('', {fd: fd});
-				file.pipe(res)
+				if(fd) fd.pipe(res)
 			}
 		}
 
